@@ -6,12 +6,11 @@ import (
 	"time"
 
 	"github.com/coredns/coredns/plugin"
+	"github.com/coredns/coredns/plugin/pkg/fall"
 	clog "github.com/coredns/coredns/plugin/pkg/log"
 	"github.com/coredns/coredns/request"
 	"github.com/miekg/dns"
 )
-
-var log = clog.NewWithPlugin("mikrotik")
 
 type Mikrotik struct {
 	stop   context.Context
@@ -33,6 +32,7 @@ type config struct {
 	cache          map[string]dns.RR
 	updateInterval time.Duration
 	keep           time.Duration
+	fall           fall.F
 }
 
 func New(next plugin.Handler, config config) *Mikrotik {
@@ -63,8 +63,12 @@ func (c *Mikrotik) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Ms
 		m.Answer = []dns.RR{rr}
 	}
 
-	w.WriteMsg(m)
-	return dns.RcodeSuccess, nil
+	if ok || !c.fall.Through(state.Name()) {
+		w.WriteMsg(m)
+		return dns.RcodeSuccess, nil
+	}
+
+	return plugin.NextOrFailure(c.Name(), c.Next, ctx, w, r)
 }
 
 func (*Mikrotik) Name() string {

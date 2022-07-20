@@ -67,6 +67,8 @@ func setup(c *caddy.Controller) error {
 				if !getDuration(&config.updateInterval, c) {
 					return c.Errf("upate needs one time.Duration argument exactly")
 				}
+			case "fallthrough":
+				config.fall.SetZonesFromArgs(c.RemainingArgs())
 			}
 			if !c.NextLine() {
 				break
