@@ -8,6 +8,7 @@ import (
 
 	clog "github.com/coredns/coredns/plugin/pkg/log"
 	"github.com/miekg/dns"
+	str2duration "github.com/xhit/go-str2duration/v2"
 )
 
 func (c *Mikrotik) start() {
@@ -51,14 +52,14 @@ func (c *Mikrotik) update() {
 
 	update := make(map[string]dns.RR, len(leases))
 	for _, lease := range leases {
-		lastSeen, err := time.ParseDuration(lease.LastSeen)
+		lastSeen, err := str2duration.ParseDuration(lease.LastSeen)
 		if err != nil {
 			c.log.Warningf("Cannot parse last seen: %s", lease.LastSeen)
 		} else if lastSeen > c.keep {
 			c.log.Debugf("Skipping '%s' (%s), last seen %s", lease.HostName, lease.MacAddress, lastSeen.String())
 			continue
 		}
-		expiresAfter, err := time.ParseDuration(lease.ExpiresAfter)
+		expiresAfter, err := str2duration.ParseDuration(lease.ExpiresAfter)
 		if err != nil {
 			c.log.Warningf("Cannot parse expires after: %s", lease.ExpiresAfter)
 			expiresAfter = 60 * time.Second
