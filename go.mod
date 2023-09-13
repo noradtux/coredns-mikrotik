@@ -1,4 +1,4 @@
-module github.com/jpicht/coredns-mikrotik
+module github.com/noradtux/coredns-mikrotik
 
 go 1.18
 
